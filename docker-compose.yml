@@ -1,0 +1,36 @@
+# Optional: run everything with `docker compose up --build`
+# Then seed demo data once:  docker compose exec server node seed.js
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo-data:/data/db
+
+  server:
+    build: ./server
+    ports:
+      - "8001:8001"
+    environment:
+      PORT: 8001
+      MONGO_URI: mongodb://mongo:27017/hotelpro
+      JWT_SECRET: change-this-to-a-long-random-string
+      CLIENT_URL: http://localhost:5173
+      ALLOW_PRIVILEGED_SIGNUP: "false"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - mongo
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: http://localhost:8001/api
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
+  uploads:
